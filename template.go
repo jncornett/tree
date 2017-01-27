@@ -4,8 +4,6 @@ import (
 	"io"
 	"io/ioutil"
 	"text/template"
-
-	"github.com/spf13/afero"
 )
 
 type Template struct {
@@ -14,23 +12,21 @@ type Template struct {
 	SrcTempl                                  *template.Template
 	SrcTemplReader                            io.Reader
 	SrcTemplBytes                             []byte
-	DataObject                                interface{}
 	DataKey                                   string
+	DataObject                                interface{}
 	UseContextAsData                          bool
+	UseStackData                              bool
 }
 
 func (t Template) Eval(c Context) (err error) {
 	var (
 		tmpl *template.Template
-		data interface{}
-		dest afero.File
+		dest io.WriteCloser
 	)
-	if tmpl, err = t.getTemplate(c); err != nil {
+	if tmpl, err = t.getTemplate(c); err != nil || tmpl == nil {
 		return // TODO add contextual info to error
 	}
-	if data, err = t.getData(c); err != nil {
-		return // TODO add contextual info to error
-	}
+	data := t.getData(c)
 	if dest, err = c.Create(t.DestFile); err != nil {
 		return
 	}
@@ -53,9 +49,6 @@ func (t Template) getTemplate(c Context) (templ *template.Template, err error) {
 		if err == nil {
 			s = string(b)
 		}
-	case t.SrcTemplKey != "":
-		templ, err = c.Template(t.SrcTemplKey)
-		return // nothing left to do!
 	case t.SrcTemplFile != "":
 		var rc io.ReadCloser
 		rc, err = c.Open(t.SrcTemplFile)
@@ -78,14 +71,17 @@ func (t Template) getTemplate(c Context) (templ *template.Template, err error) {
 	return
 }
 
-func (t Template) getData(c Context) (interface{}, error) {
+func (t Template) getData(c Context) interface{} {
 	if t.UseContextAsData {
-		return c, nil
+		return c
+	}
+	if t.UseStackData {
+		return c.Top()
 	}
 	if t.DataObject != nil {
-		return t, nil
+		return t.DataObject
 	}
-	return c.Data(t.DataKey)
+	return c.Get(t.DataKey)
 }
 
 var _ Node = &Template{}

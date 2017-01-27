@@ -5,8 +5,6 @@ import (
 	"io"
 	"io/ioutil"
 	"strings"
-
-	"github.com/spf13/afero"
 )
 
 type Copy struct {
@@ -19,7 +17,7 @@ type Copy struct {
 func (y Copy) Eval(c Context) (err error) {
 	var (
 		src  io.ReadCloser
-		dest afero.File
+		dest io.WriteCloser
 	)
 	if src, err = y.getSrc(c); err != nil {
 		return // TODO add contextual logging, maybe via custom error type?

@@ -1,11 +1,18 @@
 package tree
 
-import "github.com/spf13/afero"
-import "text/template"
+import (
+	"io"
+	"os"
+)
 
 type Context interface {
-	afero.Fs
+	Create(name string) (io.WriteCloser, error)
+	Open(name string) (io.ReadCloser, error)
+	Stat(name string) (os.FileInfo, error)
+	Mkdir(name string) error
 	Enter(name string) (Context, error)
-	Template(name string) (*template.Template, error)
-	Data(key string) (interface{}, error)
+	Push(interface{}) Context
+	Top() interface{}
+	PushMap(map[string]interface{}) Context
+	Get(string) interface{}
 }
