@@ -16,6 +16,7 @@ type Template struct {
 	SrcTemplBytes                             []byte
 	DataObject                                interface{}
 	DataKey                                   string
+	UseContextAsData                          bool
 }
 
 func (t Template) Eval(c Context) (err error) {
@@ -78,6 +79,9 @@ func (t Template) getTemplate(c Context) (templ *template.Template, err error) {
 }
 
 func (t Template) getData(c Context) (interface{}, error) {
+	if t.UseContextAsData {
+		return c, nil
+	}
 	if t.DataObject != nil {
 		return t, nil
 	}
