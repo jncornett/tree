@@ -7,7 +7,7 @@ import (
 )
 
 type Template struct {
-	DestFile                                  string
+	Dest                                      string
 	SrcTemplFile, SrcTemplString, SrcTemplKey string
 	SrcTempl                                  *template.Template
 	SrcTemplReader                            io.Reader
@@ -27,7 +27,7 @@ func (t Template) Eval(c Context) (err error) {
 		return // TODO add contextual info to error
 	}
 	data := t.getData(c)
-	if dest, err = c.Create(t.DestFile); err != nil {
+	if dest, err = c.Create(t.Dest); err != nil {
 		return
 	}
 	defer dest.Close()
